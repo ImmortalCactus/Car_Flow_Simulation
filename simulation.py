@@ -2,17 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import time
-
+import heapq
 
 class Graph:
     def __init__(self, vertices, edges):
         self.vertices = vertices
         self.edges = edges
         self.edge_lengths = [np.linalg.norm(self.vertices[e[0]]-self.vertices[e[1]]) for e in self.edges]
-        self.car1 = self.Car(0, [0,0,1,1,2], 2, self)
-        while(self.car1.update(0.2) != 1):
-            print(self.car1.coordinaties())
-            time.sleep(1)
+        self.cars = []
     def plot(self):
         x, y = self.vertices.T
         x1 = [self.vertices[i[0]][0] for i in self.edges]
@@ -21,6 +18,19 @@ class Graph:
         y2 = [self.vertices[i[1]][1] for i in self.edges]
         plt.plot(x1, y1, x2, y2, marker = 'o')
         plt.show()
+    def shortest_path(self, s, t):
+        distance = np.ones((self.vertices.shape[0])) * np.inf
+        src = [] * self.vertices.shape[0]
+        distance[s] = 0
+        done = 0
+        while(done == 0):
+            done = 1
+            for i, e in enumerate(self.edges):
+                if(distance[e[0]]+self.edge_lengths[i] < distance[e[1]]):
+                    distance[e[1]] = distance[e[0]]+self.edge_lengths[i]
+                    src[e[1]] = e[0]
+                    done = 0
+
     class Car:
         def __init__(self, init_loc, designated_path, destination, graph):
             self.on_vertex = True
