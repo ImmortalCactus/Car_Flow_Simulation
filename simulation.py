@@ -101,7 +101,7 @@ class Graph:
             return 0
 
         def adjust_path(self):
-            self.designated_path = self.graph.shortest_path(self.designated_path[0],self.designated_path[-1])
+            #self.designated_path = self.graph.shortest_path(self.designated_path[0],self.designated_path[-1])
             return
         def adjust_speed(self):
             count = 0
