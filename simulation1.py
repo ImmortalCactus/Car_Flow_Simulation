@@ -26,6 +26,8 @@ class Graph:
         for e in self.edges:
             plt.plot([self.vertices[e[0]][0], self.vertices[e[1]][0]],[self.vertices[e[0]][1], self.vertices[e[1]][1]], color="blue")
         ani = animation.FuncAnimation(self.fig, self.update, frames = 1200, interval=self.time_interval, blit = True)
+        #manager = plt.get_current_fig_manager()
+        #manager.window.showMaximized()
         plt.show()
     def shortest_path(self, s, t):
         distance = np.ones((self.vertices.shape[0])) * np.inf
@@ -54,7 +56,7 @@ class Graph:
         new_cost = self.edge_lengths.copy()
         for c in self.cars:
             if not c.on_vertex:
-                new_cost[c.loc_edge]/=DECAY
+                new_cost[c.loc_edge]+=self.edge_lengths[c.loc_edge]
         self.edge_cost = (1-ALPHA)*self.edge_cost + (ALPHA)*new_cost
         l = []
         for c in self.cars:
@@ -65,6 +67,7 @@ class Graph:
                 if(c.running):
                     if(c.update() == 1):
                         c.running = 0
+                        self.time_sum += (self.timer - c.start_time)
                     else:
                         coord = c.coordinates()
                         c.dot.set_data(coord[0],coord[1])
@@ -118,7 +121,7 @@ class Graph:
             for c in self.graph.cars:
                 if(c.loc_edge == self.loc_edge and c.pos_edge > self.pos_edge):
                     count = count + 1
-            self.speed = CAR_SPEED*pow(DECAY,count)
+            self.speed = CAR_SPEED/(count+1)
             return
         def coordinates(self):
             if(self.on_vertex):
@@ -162,7 +165,8 @@ for i in range(num):
 data1 = np.array(d)
 g = Graph(data, data1, 0.01)
 
-for i in range(1000):
-    g.add_car(0, 2, 0.02*i)
+for i in range(200):
+    g.add_car(0, 2, 0.5+0.02*i)
 
 g.plot()
+print("sum: "+str(g.time_sum))
