@@ -7,8 +7,11 @@ import time
 import copy
 
 ALPHA = 0.1
+DECAY = 0.5
+CAR_SPEED = 10000
 class Graph:
     def __init__(self, vertices, edges, time_interval):
+        self.time_sum = 0
         self.timer = 0
         self.vertices = vertices
         self.edges = edges
@@ -51,7 +54,7 @@ class Graph:
         new_cost = self.edge_lengths.copy()
         for c in self.cars:
             if not c.on_vertex:
-                new_cost[c.loc_edge]+=self.edge_lengths[c.loc_edge]
+                new_cost[c.loc_edge]/=DECAY
         self.edge_cost = (1-ALPHA)*self.edge_cost + (ALPHA)*new_cost
         l = []
         for c in self.cars:
@@ -59,11 +62,13 @@ class Graph:
                 if(not c.running):
                     c.designated_path = self.shortest_path(c.designated_path[0],c.designated_path[-1])
                     c.running = 1
-                if(c.update() == 1):
-                    c.running = 0
-                coord = c.coordinates()
-                c.dot.set_data(coord[0],coord[1])
-                l.append(c.dot)
+                if(c.running):
+                    if(c.update() == 1):
+                        c.running = 0
+                    else:
+                        coord = c.coordinates()
+                        c.dot.set_data(coord[0],coord[1])
+                        l.append(c.dot)
         self.timer += self.time_interval
         return l
     class Car:
@@ -76,7 +81,7 @@ class Graph:
             self.pos_edge = float(0)
             self.designated_path = designated_path
             self.destination = destination
-            self.speed = float(1000)
+            self.speed = float(CAR_SPEED)
             self.graph = graph
             self.dot, = self.graph.ax.plot([],[],marker="o", linestyle='', markersize=5, color = "red")
         def update(self):
@@ -106,14 +111,14 @@ class Graph:
             return 0
 
         def adjust_path(self):
-            self.designated_path = self.graph.shortest_path(self.designated_path[0],self.designated_path[-1])
+            #self.designated_path = self.graph.shortest_path(self.designated_path[0],self.designated_path[-1])
             return
         def adjust_speed(self):
             count = 0
             for c in self.graph.cars:
                 if(c.loc_edge == self.loc_edge and c.pos_edge > self.pos_edge):
                     count = count + 1
-            self.speed = 1000/(count+1)
+            self.speed = CAR_SPEED*pow(DECAY,count)
             return
         def coordinates(self):
             if(self.on_vertex):
@@ -157,7 +162,7 @@ for i in range(num):
 data1 = np.array(d)
 g = Graph(data, data1, 0.01)
 
-for i in range(200):
-    g.add_car(0, 2, 0.1*i)
+for i in range(1000):
+    g.add_car(0, 2, 0.02*i)
 
 g.plot()
